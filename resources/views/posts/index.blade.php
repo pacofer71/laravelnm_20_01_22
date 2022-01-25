@@ -7,6 +7,15 @@
 @endsection
 @section('contenido')
     <!-- This example requires Tailwind CSS v2.0+ -->
+    @if(session('mensaje'))
+    <x-alerta1>
+    {{session('mensaje')}}
+    </x-alerta1>
+    @endif
+    <div class="my-4">
+    <a href="{{route('posts.create')}}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    <i class="fas fa-plus"></i>Nuevo</a>
+    </div>
     <x-tabla1>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -42,7 +51,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full" src="storage/{{ $item->image }}" alt="">
+                                    <img class="h-10 w-10 rounded-full" src="{{Storage::url($item->image) }}" alt="">
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">

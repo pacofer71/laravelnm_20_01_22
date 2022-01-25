@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Post extends Model
 {
     use HasFactory;
-    protected $fillable=['titulo', 'resumen','contenido', 'imagen', 'category_id'];
+    protected $fillable=['titulo', 'resumen','contenido', 'image', 'category_id'];
 
     //relacion 1:N con categories
     public function category(){
