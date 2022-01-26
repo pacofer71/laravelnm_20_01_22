@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <div>
-                    <img src="/storage/posts/noimage.png" class="bg-cover bg-center" id="img">
+                    <img src="/storage/noimage.png" class="bg-cover bg-center" id="img">
                 </div>
             </div>
             @error('image')

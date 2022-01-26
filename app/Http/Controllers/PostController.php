@@ -54,16 +54,19 @@ class PostController extends Controller
         if($request->file('image')){
             //se ha subido la imagen la almaceno físicamente
             $url = Storage::put('public/posts', $request->file('image'));
+            // $url=public/posts/nombre.jpg
+            //"posts/".basename($url) =>nombre.jpg
+            $urlBuena="posts/".basename($url);
         }
         //guardo el post en la base de datos
         $post=Post::create($request->all());
         $post->update([
-            'image'=>$url
+            'image'=>$urlBuena
         ]);
         //almacenamos en la tabla post_tag los tags de este post
         $post->tags()->attach($request->tags);
         //----
-        return redirect()->route('posts.index')->with('mensaje'. 'Post Creado');
+        return redirect()->route('posts.index')->with('mensaje', 'Post Creado');
         
     }
 
@@ -86,7 +89,9 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        $tags=Tag::orderBy('nombre')->get();
+        $categorias = Category::orderBy('nombre')->get();
+        return view('posts.edit', compact('post', 'tags', 'categorias'));
     }
 
     /**
@@ -109,6 +114,13 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        //1.- Borro la imagen asocida al post
+        // $post->image = posts/nombre.jpg 	
+        Storage::delete("public/".$post->image);
+        //2.- Borro el post
+        $post->delete();
+        //3.-nos vamos a index
+        return redirect()->route('posts.index')->with('mensaje', 'Post Borrado');
+
     }
 }
