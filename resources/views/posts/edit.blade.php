@@ -49,7 +49,7 @@ Editar Registro
 
         <div class="mt-3">
             <p class="block text-sm font-medium text-gray-700 mb-2">Etiquetas</p>
-            @php $array = $post->tags->pluck('id')->toArray() @endphp
+            
             @foreach ($tags as $tag)
                 &nbsp;<label class="font-semibold" for="{{ $tag->id }}">
                     <input type="checkbox" id="{{ $tag->id }}" name="tags[]" value="{{ $tag->id }}" @if(in_array($tag->id, $array)) checked @endif>

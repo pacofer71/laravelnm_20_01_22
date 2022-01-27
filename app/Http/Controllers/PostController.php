@@ -15,11 +15,15 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $posts=Post::orderBy('id', 'desc')->paginate(4);
+        $posts=Post::orderBy('id', 'desc')
+        ->titulo($request->titulo)
+        ->categoryId($request->category_id)
+        ->paginate(4);
+        $categorias = Category::orderBy('nombre')->get();
         
-        return view('posts.index', compact('posts'));
+        return view('posts.index', compact('posts', 'request', 'categorias'));
     }
 
     /**
@@ -78,7 +82,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        return view('posts.show');
     }
 
     /**
@@ -91,7 +95,9 @@ class PostController extends Controller
     {
         $tags=Tag::orderBy('nombre')->get();
         $categorias = Category::orderBy('nombre')->get();
-        return view('posts.edit', compact('post', 'tags', 'categorias'));
+        $array=$array = $post->tags->pluck('id')->toArray();
+
+        return view('posts.edit', compact('post', 'tags', 'categorias', 'array'));
     }
 
     /**
@@ -103,7 +109,35 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'titulo'=>['required', 'string', 'min:3', 'unique:posts,titulo,'.$post->id],
+            'resumen'=>['required', 'string', 'min:6'], 
+            'contenido'=>['required', 'string', 'min:10'],
+            'image'=>['nullable', 'image', 'max:1024'],
+            'tags'=>['required']
+        ]);
+        if($request->file('image')){
+            //queremos cambiar la imagen
+            //debemos borrar la imagen antigua
+            Storage::delete("public/".$post->image);
+            //se ha subido la imagen la almaceno físicamente
+            $url = Storage::put('public/posts', $request->file('image'));
+            // $url=public/posts/nombre.jpg
+            //"posts/".basename($url) =>nombre.jpg
+            $urlBuena="posts/".basename($url);
+            $post->update($request->all());
+            $post->update(['image'=>$urlBuena]);
+
+
+        }
+        else{
+            //no queremos cambiar la imagen
+            $post->update($request->all());
+        }
+        //Ahora asociamos a este post sus etuiquetas
+        $post->tags()->sync($request->tags);
+
+        return redirect()->route('posts.index')->with('mensaje', 'Post Actualizado');
     }
 
     /**
