@@ -28,7 +28,7 @@ class Post extends Model
 
     }
     public function scopeCategoryId($query, $v){
-        if($v=="-10"){
+        if($v=="-10" || !isset($v)){
             return $query->where('category_id', 'like', "%");
         }
         return $query->where('category_id' , $v);

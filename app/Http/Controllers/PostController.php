@@ -15,15 +15,29 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request, Tag $tag)
     {
-        $posts=Post::orderBy('id', 'desc')
-        ->titulo($request->titulo)
-        ->categoryId($request->category_id)
-        ->paginate(4);
-        $categorias = Category::orderBy('nombre')->get();
+        $posts = Post::orderBy('id', 'desc')
+                ->titulo($request->titulo)
+                ->categoryId($request->category_id)
+                ->paginate(4)->withQueryString();
         
-        return view('posts.index', compact('posts', 'request', 'categorias'));
+        $control=true;
+        $categorias = Category::orderBy('nombre')->get();
+
+        return view('posts.index', compact('posts', 'request', 'categorias', 'control'));
+    }
+    public function index1(Request $request, Tag $tag)
+    {
+        $posts = $tag->posts()->orderBy('id', 'desc')
+                ->titulo($request->titulo)
+                ->categoryId($request->category_id)
+                ->paginate(4)->withQueryString();
+        
+        $control=false;
+        $categorias = Category::orderBy('nombre')->get();
+
+        return view('posts.index', compact('posts', 'request', 'categorias', 'control'));
     }
 
     /**
@@ -47,31 +61,30 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'titulo'=>['required', 'string', 'min:3', 'unique:posts,titulo'],
-            'resumen'=>['required', 'string', 'min:6'], 
-            'contenido'=>['required', 'string', 'min:10'],
-            'image'=>['required', 'image', 'max:1024'],
-            'tags'=>['required']
+            'titulo' => ['required', 'string', 'min:3', 'unique:posts,titulo'],
+            'resumen' => ['required', 'string', 'min:6'],
+            'contenido' => ['required', 'string', 'min:10'],
+            'image' => ['required', 'image', 'max:1024'],
+            'tags' => ['required']
         ]);
         //Hemos pasdo todas las validaciones, vamos a guardar
         //1.- Guardamos el post con su imagen
-        if($request->file('image')){
+        if ($request->file('image')) {
             //se ha subido la imagen la almaceno físicamente
             $url = Storage::put('public/posts', $request->file('image'));
             // $url=public/posts/nombre.jpg
             //"posts/".basename($url) =>nombre.jpg
-            $urlBuena="posts/".basename($url);
+            $urlBuena = "posts/" . basename($url);
         }
         //guardo el post en la base de datos
-        $post=Post::create($request->all());
+        $post = Post::create($request->all());
         $post->update([
-            'image'=>$urlBuena
+            'image' => $urlBuena
         ]);
         //almacenamos en la tabla post_tag los tags de este post
         $post->tags()->attach($request->tags);
         //----
         return redirect()->route('posts.index')->with('mensaje', 'Post Creado');
-        
     }
 
     /**
@@ -82,7 +95,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return view('posts.show');
+        return view('posts.show', compact('post'));
     }
 
     /**
@@ -93,9 +106,9 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        $tags=Tag::orderBy('nombre')->get();
+        $tags = Tag::orderBy('nombre')->get();
         $categorias = Category::orderBy('nombre')->get();
-        $array=$array = $post->tags->pluck('id')->toArray();
+        $array = $array = $post->tags->pluck('id')->toArray();
 
         return view('posts.edit', compact('post', 'tags', 'categorias', 'array'));
     }
@@ -110,27 +123,24 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         $request->validate([
-            'titulo'=>['required', 'string', 'min:3', 'unique:posts,titulo,'.$post->id],
-            'resumen'=>['required', 'string', 'min:6'], 
-            'contenido'=>['required', 'string', 'min:10'],
-            'image'=>['nullable', 'image', 'max:1024'],
-            'tags'=>['required']
+            'titulo' => ['required', 'string', 'min:3', 'unique:posts,titulo,' . $post->id],
+            'resumen' => ['required', 'string', 'min:6'],
+            'contenido' => ['required', 'string', 'min:10'],
+            'image' => ['nullable', 'image', 'max:1024'],
+            'tags' => ['required']
         ]);
-        if($request->file('image')){
+        if ($request->file('image')) {
             //queremos cambiar la imagen
             //debemos borrar la imagen antigua
-            Storage::delete("public/".$post->image);
+            Storage::delete("public/" . $post->image);
             //se ha subido la imagen la almaceno físicamente
             $url = Storage::put('public/posts', $request->file('image'));
             // $url=public/posts/nombre.jpg
             //"posts/".basename($url) =>nombre.jpg
-            $urlBuena="posts/".basename($url);
+            $urlBuena = "posts/" . basename($url);
             $post->update($request->all());
-            $post->update(['image'=>$urlBuena]);
-
-
-        }
-        else{
+            $post->update(['image' => $urlBuena]);
+        } else {
             //no queremos cambiar la imagen
             $post->update($request->all());
         }
@@ -150,11 +160,10 @@ class PostController extends Controller
     {
         //1.- Borro la imagen asocida al post
         // $post->image = posts/nombre.jpg 	
-        Storage::delete("public/".$post->image);
+        Storage::delete("public/" . $post->image);
         //2.- Borro el post
         $post->delete();
         //3.-nos vamos a index
         return redirect()->route('posts.index')->with('mensaje', 'Post Borrado');
-
     }
 }

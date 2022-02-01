@@ -121,6 +121,6 @@
     </x-tabla1>
     @endif
     <div class="mt-2">
-        {{ $posts->appends($request->except('page'))->links() }}
+        {{ $posts->links() }}
     </div>
 @endsection

@@ -14,7 +14,8 @@ class TagController extends Controller
      */
     public function index()
     {
-        //
+        $tags=Tag::orderBy('id', 'desc')->paginate(4);
+        return view('tags.index', compact('tags'));
     }
 
     /**
@@ -24,7 +25,7 @@ class TagController extends Controller
      */
     public function create()
     {
-        //
+        return view('tags.create');
     }
 
     /**
@@ -35,7 +36,15 @@ class TagController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //dd($request->color);
+        $request->validate([
+            'nombre'=>['required', 'string', 'min:3', 'unique:tags,nombre'],
+            'descripcion'=>['required', 'string', 'min:6'],
+            'color'=>['required'],
+
+        ]);
+        Tag::create($request->all());
+        return redirect()->route('tags.index')->with('mensaje', "Etiqueta creada.");
     }
 
     /**
@@ -57,7 +66,7 @@ class TagController extends Controller
      */
     public function edit(Tag $tag)
     {
-        //
+        return view('tags.edit', compact('tag'));
     }
 
     /**
@@ -69,7 +78,16 @@ class TagController extends Controller
      */
     public function update(Request $request, Tag $tag)
     {
-        //
+        $request->validate([
+            'nombre'=>['required', 'string', 'min:3', 'unique:tags,nombre,'.$tag->id],
+            'descripcion'=>['required', 'string', 'min:6'],
+            'color'=>['required'],
+
+        ]);
+        $tag->update($request->all());
+        return redirect()->route('tags.index')->with('mensaje', "Etiqueta Actualizada.");
+
+
     }
 
     /**
@@ -80,6 +98,7 @@ class TagController extends Controller
      */
     public function destroy(Tag $tag)
     {
-        //
+        $tag->delete();
+        return redirect()->route('tags.index')->with('mensaje', "Etiqueta Borrada.");
     }
 }
